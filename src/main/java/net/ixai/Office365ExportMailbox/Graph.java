@@ -62,5 +62,33 @@ public class Graph {
         return token.getToken();
     }
 
+    public static User getUser() throws Exception {
+        // Ensure client isn't null
+        if (_userClient == null) {
+            throw new Exception("Graph has not been initialized for user auth");
+        }
+
+        return _userClient.me().get(requestConfig -> {
+            requestConfig.queryParameters.select = new String[] {"displayName", "mail", "userPrincipalName"};
+        });
+    }
+
+    public static MessageCollectionResponse getInbox() throws Exception {
+        // Ensure client isn't null
+        if (_userClient == null) {
+            throw new Exception("Graph has not been initialized for user auth");
+        }
+
+        return _userClient.me()
+                .mailFolders()
+                .byMailFolderId("inbox")
+                .messages()
+                .get(requestConfig -> {
+                    requestConfig.queryParameters.select = new String[] { "from", "isRead", "receivedDateTime", "subject" };
+                    requestConfig.queryParameters.top = 25;
+                    requestConfig.queryParameters.orderby = new String[] { "receivedDateTime DESC" };
+                });
+    }
+
 
 }

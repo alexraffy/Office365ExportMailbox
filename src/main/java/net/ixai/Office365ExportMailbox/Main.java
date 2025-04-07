@@ -93,7 +93,17 @@ public class Main {
     }
 
     private static void greetUser() {
-        // TODO
+        try {
+            final User user = Graph.getUser();
+            // For Work/school accounts, email is in mail property
+            // Personal accounts, email is in userPrincipalName
+            final String email = user.getMail() == null ? user.getUserPrincipalName() : user.getMail();
+            System.out.println("Hello, " + user.getDisplayName() + "!");
+            System.out.println("Email: " + email);
+        } catch (Exception e) {
+            System.out.println("Error getting user");
+            System.out.println(e.getMessage());
+        }
     }
 
     private static void displayAccessToken() {
@@ -107,7 +117,26 @@ public class Main {
     }
 
     private static void listInbox() {
-        // TODO
+        try {
+            final MessageCollectionResponse messages = Graph.getInbox();
+
+            // Output each message's details
+            for (Message message: messages.getValue()) {
+                System.out.println("Message: " + message.getSubject());
+                System.out.println("  From: " + message.getFrom().getEmailAddress().getName());
+                System.out.println("  Status: " + (message.getIsRead() ? "Read" : "Unread"));
+                System.out.println("  Received: " + message.getReceivedDateTime()
+                        // Values are returned in UTC, convert to local time zone
+                        .atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime()
+                        .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)));
+            }
+
+            final Boolean moreMessagesAvailable = messages.getOdataNextLink() != null;
+            System.out.println("\nMore messages available? " + moreMessagesAvailable);
+        } catch (Exception e) {
+            System.out.println("Error getting inbox");
+            System.out.println(e.getMessage());
+        }
     }
 
     private static void sendMail() {
